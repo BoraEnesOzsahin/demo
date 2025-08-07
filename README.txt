@@ -16,6 +16,7 @@ This is a simple Spring Boot microservice designed to verify user information ag
 - PostgreSQL
 - Maven
 - Lombok
+- Swagger UI (Optional)
 
 3. Database Structure
 ---------------------
@@ -119,3 +120,10 @@ The service exposes two main endpoints under the base path `/api/verify`.
      3. Paste the example URL into the address bar.
      4. Change the values for `plateNumber`, `id`, and `serialNum` to your test data.
      5. Press Enter. The browser will display the verification result.
+
+
+**Bonus: View the endpoints with SwaggerUI
+   - This link can be used to view the endpoints
+   http://localhost:8080/swagger-ui/index.html
+
+ 
