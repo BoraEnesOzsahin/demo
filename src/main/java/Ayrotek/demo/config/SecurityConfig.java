@@ -1,8 +1,9 @@
 package Ayrotek.demo.config;
 
-import org.springframework.security.config.Customizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.User;
@@ -21,18 +22,19 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/verify/**").permitAll()
+                .requestMatchers("/api/register/**").permitAll()   // allow registration endpoints
+                .requestMatchers("/api/verify/**").permitAll()     // your existing verify endpoints
                 .anyRequest().authenticated()
             )
-            .httpBasic(Customizer.withDefaults()); // Add this line to enable HTTP Basic Auth for other endpoints
+            .httpBasic(Customizer.withDefaults());
         return http.build();
     }
 
     @Bean
-    public InMemoryUserDetailsManager userDetailsService() {
+    public InMemoryUserDetailsManager userDetailsService(PasswordEncoder encoder) {
         UserDetails user = User.builder()
             .username("admin")
-            .password(passwordEncoder().encode("admin123"))
+            .password(encoder.encode("admin123"))
             .roles("USER")
             .build();
         return new InMemoryUserDetailsManager(user);
