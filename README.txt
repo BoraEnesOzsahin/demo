@@ -1,129 +1,215 @@
+# Vehicle and Driver Registration & Verification API
 
-==================================================
- Ayrotek Verification Microservice - README
-==================================================
+A Spring Boot service for registering and strictly verifying driver and vehicle data. Uses PostgreSQL for persistence and Swagger UI for interactive API docs.
 
-1. Project Overview
--------------------
-This is a simple Spring Boot microservice designed to verify user information against a database. It exposes RESTful API endpoints to check if a given combination of ID, plate number, and serial number exists and is valid. The service is secured using Spring Security with Basic Authentication.
+---
 
-2. Technologies Used
---------------------
-- Java 21
-- Spring Boot 3.x
-- Spring Data JPA (Hibernate)
-- Spring Security
-- PostgreSQL
+## Contents
+- Overview
+- Prerequisites
+- Database Configuration
+- Run the Application
+- API Documentation (Swagger UI)
+- Using the Terminal (PowerShell)
+  - Register data
+  - Verify data
+- Response Model (ServerResponse)
+- API Endpoints Reference
+- Project Structure
+- Troubleshooting
+
+---
+
+## Overview
+- Purpose: Persist a person, their driver’s license, a vehicle, and its registration. Verify later with a field-by-field, strict comparison.
+- Data model: Person ↔ DriversLicense, Person ↔ Vehicles, Vehicle ↔ VehicleRegistration
+- Responses: All controller responses return a JSON object (wrapped) rather than plain text.
+
+---
+
+## Prerequisites
+- Java JDK 21
 - Maven
-- Lombok
-- Swagger UI (Optional)
+- PostgreSQL (local instance)
+- Git (optional)
 
-3. Database Structure
----------------------
-The application uses a single PostgreSQL table named `userinfo` to store the verification data.
+---
 
-Table: `userinfo`
-- This table holds the records that the service will check against.
+## Database Configuration
+Edit src/main/resources/application.properties:
 
-Columns:
-- `id` (VARCHAR, Primary Key): The user's unique identifier (e.g., a national ID, 11 characters).
-- `platenumber` (VARCHAR): The vehicle's license plate number.
-- `serial_num` (VARCHAR): A unique serial number associated with the record.
-- `is_verified` (BOOLEAN): A flag that is updated to `true` upon successful verification.
+```properties
+spring.datasource.url=jdbc:postgresql://localhost:5432/demo
+spring.datasource.username=your_postgres_username
+spring.datasource.password=your_postgres_password
 
-Sample SQL to create the table:
-```sql
-CREATE TABLE userinfo (
-    id VARCHAR(255) PRIMARY KEY,
-    platenumber VARCHAR(255) NOT NULL,
-    serial_num VARCHAR(255) NOT NULL,
-    is_verified BOOLEAN DEFAULT FALSE
-);
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
 ```
 
-Sample data insertion:
+Create the database:
+
 ```sql
-INSERT INTO userinfo (id, platenumber, serial_num) VALUES ('12345678901', '34ABC123', 'X0FD53');
+CREATE DATABASE demo;
 ```
 
-4. How to Run the Project
--------------------------
-**Prerequisites:**
-- JDK 21 or later
-- Apache Maven
-- A running PostgreSQL instance
+---
 
-**Steps:**
-1.  **Database Setup:**
-    - Create a PostgreSQL database named `demo`.
-    - Ensure you have a user (e.g., `postgres`) with privileges to access this database.
+## Run the Application
+From the project root:
 
-2.  **Configure Application:**
-    - Open the `src/main/resources/application.properties` file.
-    - Update the datasource properties to match your PostgreSQL setup:
-      ```properties
-      spring.datasource.url=jdbc:postgresql://localhost:5432/demo
-      spring.datasource.username=your_postgres_username
-      spring.datasource.password=your_postgres_password
-      ```
+```bash
+# Windows PowerShell
+cd C:\Users\a\Desktop\demo
+./mvnw spring-boot:run
+```
 
-3.  **Build and Run:**
-    - Open a terminal or command prompt in the project's root directory (`c:\Users\a\Desktop\demo`).
-    - Run the following Maven command:
-      ```bash
-      mvn spring-boot:run
-      ```
-    - The application will start and be accessible on `http://localhost:8080`.
+Wait until you see “Started AyrotekApplication...” The app will run at:
+- http://localhost:8080
 
-5. RESTful API Endpoints
-------------------------
-The service exposes two main endpoints under the base path `/api/verify`.
+---
 
-**A. POST /api/verify/DataVerification (Primary Endpoint)**
-   - This is the main endpoint for verifying data. It requires authentication.
+## API Documentation (Swagger UI)
+Open the interactive API docs in your browser:
 
-   - **Method:** `POST`
-   - **Authentication:** Basic Authentication.
-     - Username: `admin`
-     - Password: `admin123`
-     (Credentials are configured in `SecurityConfig.java`)
-   - **Request Body (JSON):**
-     ```json
-     {
-         "id": "12345678901",
-         "plateNumber": "34ABC123",
-         "serialNum": "X0FD53"
-     }
-     ```
-   - **Success Response (200 OK):**
-     ```
-     Registration verified successfully
-     ```
-   - **Failure Response (401 Unauthorized):**
-     ```
-     Registration verification failed
-     ```
+- http://localhost:8080/swagger-ui.html
 
-**B. GET /api/verify/DataVerification/get (Testing Endpoint)**
-   - This endpoint was added for easy testing directly from a web browser, without needing a tool like Postman or cURL. It does not require authentication.
+How to use:
+1. Expand an endpoint (for example, POST /api/register/full).
+2. Click Try it out.
+3. Paste a full JSON request body.
+4. Click Execute and view the server response.
 
-   - **Method:** `GET`
-   - **Authentication:** None (`permitAll` is configured in `SecurityConfig.java`).
-   - **Usage:** Provide the data as URL query parameters.
-   - **Example URL:**
-     ```
-     http://localhost:8080/api/verify/DataVerification/get?plateNumber=34ABC123&id=12345678901&serialNum=X0FD53
-     ```
-   - **How to Test:**
-     1. Start the application.
-     2. Open a web browser.
-     3. Paste the example URL into the address bar.
-     4. Change the values for `plateNumber`, `id`, and `serialNum` to your test data.
-     5. Press Enter. The browser will display the verification result.
+---
 
+## Using the Terminal (PowerShell)
 
-**Bonus: View the endpoints with SwaggerUI
-   - This link can be used to view the endpoints
-   http://localhost:8080/swagger-ui/index.html
+### Register data
+Define and send a registration payload:
 
- 
+```powershell
+# Define registration data
+$jsonData = @{
+  vehicleRegistration = @{
+    registrationNumber = "34ABC123"
+    issueDate = "2023-05-15"
+    expiryDate = "2028-05-15"
+    owner = @{ nationalId = "12345678901" }
+    vehicle = @{
+      make = "Toyota"; model = "Corolla"; year = 2021; color = "White"
+      vin = "1HGCM82633A004352"; engineNumber = "ENG123456789"
+      plateNumber = "34ABC123"; fuelType = "Gasoline"
+    }
+  }
+  driversLicense = @{
+    licenseNumber = "TR12345678"
+    issueDate = "2022-03-10"
+    expiryDate = "2032-03-10"
+    categories = @("B","A2")
+    holder = @{
+      firstName = "John"; lastName = "Doe"; dateOfBirth = "1985-07-20"
+      nationalId = "12345678901"
+    }
+  }
+} | ConvertTo-Json -Depth 6
+
+# Send registration request
+Invoke-WebRequest -Method Post -Uri "http://localhost:8080/api/register/full" `
+  -ContentType "application/json" -Body $jsonData
+```
+
+Expected wrapped JSON responses:
+- 201 Created:
+  ```json
+  {
+    "status": true,
+    "message": "Registration successful",
+    "data": {
+      "...": "Person object with nested relations"
+    }
+  }
+  ```
+- 409 Conflict (duplicate):
+  ```json
+  {
+    "status": false,
+    "message": "Record already exists",
+    "data": null
+    }
+  ```
+- 400 Bad Request:
+  ```json
+  {
+    "status": false,
+    "message": "Validation error message",
+    "data": null
+  }
+  ```
+
+### Verify data
+Use the same structure (every field must match exactly):
+
+```powershell
+Invoke-WebRequest -Method Post -Uri "http://localhost:8080/api/verify/full" `
+  -ContentType "application/json" -Body $jsonData
+```
+
+Expected wrapped JSON responses:
+- 200 OK:
+  ```json
+  {
+    "status": true,
+    "message": "Verification successful",
+    "data": null
+  }
+  ```
+- 401 Unauthorized:
+  ```json
+  {
+    "status": false,
+    "message": "Verification failed",
+    "data": null
+  }
+  ```
+
+Tip:
+- The person is identified by driversLicense.holder.nationalId.
+- A single mismatch in any field results in “Verification failed”.
+
+---
+
+## Response Model (ServerResponse)
+All endpoints return a JSON wrapper object (as defined in ServerResponse.java):
+
+```json
+{
+  "status": boolean,
+  "message": "string",
+  "data": any | null
+}
+```
+
+- status: true for success, false for errors.
+- message: human-readable description (e.g., “Registration successful”, “Record already exists”).
+- data: optional payload (e.g., on successful registration, the persisted Person object). For verification, data is typically null.
+
+Note: If your current controller returns raw entities on success, align it to wrap with ServerResponse for consistency.
+
+---
+
+## API Endpoints Reference
+
+### POST /api/register/full
+- Description: Registers a person, driver’s license, vehicle, and vehicle registration in one transaction.
+- Request body: Full JSON as shown above.
+- Responses:
+  - 201 Created: ServerResponse with data = Person object JSON.
+  - 409 Conflict: ServerResponse with message = “Record already exists”.
+  - 400 Bad Request: ServerResponse with validation/processing error message.
+
+### POST /api/verify/full
+- Description: Strict, field-by-field verification against stored data.
+- Request body: Same structure as registration.
+- Responses:
+  - 200 OK: ServerResponse { status: true, message: “Verification successful”, data: null }.
+  - 401 Unauthorized: ServerResponse { status: false, message: “Verification failed”, data: null }.

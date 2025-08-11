@@ -25,19 +25,25 @@ public class VerificationController {
      * It performs a strict, field-by-field comparison against the database.
      */
     @PostMapping(value = "/full", consumes = "application/json", produces = "application/json")
-    public ResponseEntity<String> verifyFullRegistration(@RequestBody RegistrationRequest request) {
+    public ServerResponse verifyFullRegistration(@RequestBody RegistrationRequest request) {
+        ServerResponse response = new ServerResponse();
+
         try {
             boolean isVerified = verificationService.verifyRegistrationData(request);
 
             if (isVerified) {
-                return ResponseEntity.ok("Verification successful");
+                response.setMessage("Verification successful");
+                response.setStatus(true);
+                
             } else {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Verification failed");
+                response.setMessage("Verification failed");
+                response.setStatus(false);
             }
         } catch (Exception e) {
             // Catch any unexpected errors during the process
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("An error occurred during verification: " + e.getMessage());
+            response.setMessage("An error occurred during verification: " + e.getMessage());
+            response.setStatus(false);
         }
+        return response;
     }
 }

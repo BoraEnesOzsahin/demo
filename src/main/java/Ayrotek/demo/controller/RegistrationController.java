@@ -18,28 +18,39 @@ public class RegistrationController {
         this.registrationService = registrationService;
     }
 
-    @GetMapping("/ping")
-    public ResponseEntity<String> ping() {
-        return ResponseEntity.ok("register-ok");
-    }
+
 
     // POST /api/register/full -> accepts your full JSON and persists Person + Vehicle + License
     @PostMapping(value = "/full", consumes = "application/json", produces = "application/json")
-    public ResponseEntity<?> registerFull(@RequestBody RegistrationRequest request) {
+    public ServerResponse registerFull(@RequestBody RegistrationRequest request) {
+        ServerResponse response = new ServerResponse();
+
         try {
+            
             Person saved = registrationService.processRegistration(request);
-            return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+            response.setMessage("Registration successful");
+            response.setStatus(true);
+
+            return response;
+
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            response.setMessage(e.getMessage());
+            response.setStatus(false);
+            return response;
+            
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Registration failed");
+            response.setMessage("Registration failed");
+            response.setStatus(false);
+            return response;
         }
     }
 
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<String> handleInvalidJson(HttpMessageNotReadableException e) {
-        return ResponseEntity.badRequest().body("Invalid JSON: " + e.getMessage());
+    public ServerResponse handleInvalidJson(HttpMessageNotReadableException e) {
+        ServerResponse response = new ServerResponse();
+        response.setMessage("Invalid JSON: " + e.getMessage());
+        response.setStatus(false);
+        return response;
     }
 }
