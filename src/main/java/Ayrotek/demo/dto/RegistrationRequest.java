@@ -7,7 +7,6 @@ public class RegistrationRequest {
     public VehicleRegistrationDTO vehicleRegistration;
     public DriversLicenseDTO driversLicense;
 
-    // Nested DTOs must be public static so they are accessible from other packages
     public static class VehicleRegistrationDTO {
         public String registrationNumber;
         public LocalDate issueDate;
@@ -44,5 +43,10 @@ public class RegistrationRequest {
         public String engineNumber;
         public String plateNumber;
         public String fuelType;
+
+
+        public String getPlateNumber() {
+                return plateNumber;
+            }
     }
 }

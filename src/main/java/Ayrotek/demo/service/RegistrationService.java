@@ -19,7 +19,7 @@ public class RegistrationService {
 
     @Transactional
     public Person processRegistration(RegistrationRequest request) {
-        // --- VALIDATION: Ensure the request and its critical parts are not null ---
+        // --- VALIDATION ---
         if (request == null || request.driversLicense == null || request.vehicleRegistration == null) {
             throw new IllegalArgumentException("The registration request is incomplete.");
         }
@@ -28,12 +28,11 @@ public class RegistrationService {
             throw new IllegalArgumentException("Driver's license holder information with national ID is required.");
         }
         VehicleDTO vehicleDto = request.vehicleRegistration.vehicle;
-        if (vehicleDto == null) {
-            throw new IllegalArgumentException("Vehicle information is missing.");
+        if (vehicleDto == null || vehicleDto.getPlateNumber() == null) {
+            throw new IllegalArgumentException("Vehicle information with a plate number is required.");
         }
 
         // --- FIND OR CREATE PERSON ---
-        // This logic correctly finds an existing person or prepares a new one.
         Person person = personRepository.findByNationalId(holderDto.nationalId)
                 .orElseGet(() -> {
                     Person newPerson = new Person();
@@ -44,7 +43,19 @@ public class RegistrationService {
                     return newPerson;
                 });
 
-        // --- MAP AND LINK VEHICLE ---
+        // --- IDEMPOTENCY CHECK: See if this vehicle is already registered to this person ---
+        boolean vehicleExists = person.getVehicles().stream()
+                .anyMatch(v -> v.getPlateNumber().equals(vehicleDto.getPlateNumber()));
+
+        if (vehicleExists) {
+            // If the vehicle already exists, do not create a duplicate.
+            // Simply return the existing person record.
+            return person;
+        }
+        // --- END OF IDEMPOTENCY CHECK ---
+
+
+        // --- MAP AND LINK NEW VEHICLE (only if it doesn't exist) ---
         Vehicle vehicle = new Vehicle();
         vehicle.setVin(vehicleDto.vin);
         vehicle.setPlateNumber(vehicleDto.plateNumber);
@@ -54,16 +65,16 @@ public class RegistrationService {
         vehicle.setColor(vehicleDto.color);
         vehicle.setEngineNumber(vehicleDto.engineNumber);
         vehicle.setFuelType(vehicleDto.fuelType);
-        vehicle.setOwner(person); // Link vehicle to person
+        vehicle.setOwner(person);
 
         VehicleRegistration registration = new VehicleRegistration();
         registration.setRegistrationNumber(request.vehicleRegistration.registrationNumber);
         registration.setIssueDate(request.vehicleRegistration.issueDate);
         registration.setExpiryDate(request.vehicleRegistration.expiryDate);
-        registration.setVehicle(vehicle); // Link registration to vehicle
-        vehicle.setRegistration(registration); // Link vehicle to registration
+        registration.setVehicle(vehicle);
+        vehicle.setRegistration(registration);
 
-        person.getVehicles().add(vehicle); // Add the fully constructed vehicle to the person's set
+        person.getVehicles().add(vehicle);
 
         // --- MAP AND LINK LICENSE (only if the person is new) ---
         if (person.getId() == null) {
@@ -72,12 +83,11 @@ public class RegistrationService {
             license.setIssueDate(request.driversLicense.issueDate);
             license.setExpiryDate(request.driversLicense.expiryDate);
             license.setCategories(request.driversLicense.categories);
-            license.setPerson(person); // Link license to person
-            person.setDriversLicense(license); // Link person to license
+            license.setPerson(person);
+            person.setDriversLicense(license);
         }
 
         // --- SAVE ---
-        // Saving the 'person' object will cascade and save all linked new entities.
         return personRepository.save(person);
     }
 }
