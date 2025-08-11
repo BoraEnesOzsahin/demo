@@ -50,6 +50,7 @@ public class RegistrationService {
         if (vehicleExists) {
             // If the vehicle already exists, do not create a duplicate.
             // Simply return the existing person record.
+            
             return person;
         }
         // --- END OF IDEMPOTENCY CHECK ---

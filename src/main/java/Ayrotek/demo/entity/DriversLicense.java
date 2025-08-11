@@ -7,6 +7,9 @@ import lombok.ToString;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 @Entity
 @Table(name = "drivers_licenses")
 @Data
@@ -32,4 +35,11 @@ public class DriversLicense {
     @OneToOne
     @JoinColumn(name = "person_id", referencedColumnName = "id")
     private Person person;
+
+    @JsonIgnoreProperties("driversLicense")
+    public Person getPerson() {
+        return person;
+    }
+
+    
 }

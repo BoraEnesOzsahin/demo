@@ -1,5 +1,7 @@
 package Ayrotek.demo.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -35,4 +37,10 @@ public class Vehicle {
     // A vehicle has one registration document
     @OneToOne(mappedBy = "vehicle", cascade = CascadeType.ALL, orphanRemoval = true)
     private VehicleRegistration registration;
+
+
+    @JsonIgnoreProperties("vehicle")
+    public VehicleRegistration getRegistration() {
+        return registration;
+    }
 }

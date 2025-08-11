@@ -8,6 +8,8 @@ import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 @Entity
 @Table(name = "persons")
 @Data
@@ -31,4 +33,18 @@ public class Person {
 
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Vehicle> vehicles = new HashSet<>();
+
+
+    
+    @JsonIgnoreProperties("owner")
+    public Set<Vehicle> getVehicles() {
+        return vehicles;
+    }
+
+    
+    @JsonIgnoreProperties("person")
+    public DriversLicense getDriversLicense() {
+        return driversLicense;
+    }
+    
 }
