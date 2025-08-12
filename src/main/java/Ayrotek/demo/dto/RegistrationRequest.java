@@ -6,6 +6,8 @@ import java.util.List;
 public class RegistrationRequest {
     public VehicleRegistrationDTO vehicleRegistration;
     public DriversLicenseDTO driversLicense;
+    public String regCode;
+    public String adminPassword;
 
     public static class VehicleRegistrationDTO {
         public String registrationNumber;

@@ -7,4 +7,5 @@ import java.util.Optional;
 
 public interface PersonRepository extends JpaRepository<Person, Long> {
     Optional<Person> findByNationalId(String nationalId);
+    Optional<Person> findByRegCode(String regCode);
 }
