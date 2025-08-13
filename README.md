@@ -1,236 +1,332 @@
-# Vehicle and Driver Registration & Verification API
+# Vehicle and Driver Registration System
 
-A Spring Boot service for registering and strictly verifying driver and vehicle data. Uses PostgreSQL for persistence and Swagger UI for interactive API docs.
+This project is a Spring Boot application that provides a RESTful API for managing vehicle and driver registration records. It allows for creating, updating, deleting, and verifying registration data in a secure and structured manner.
 
----
+## Technologies Used
+*   **Java 17**
+*   **Spring Boot 3**
+*   **Spring Data JPA / Hibernate**: For database interaction.
+*   **PostgreSQL**: As the relational database.
+*   **Maven**: For project build and dependency management.
+*   **Swagger / OpenAPI 3**: For API documentation and interactive testing.
 
-## Contents
-- Overview
-- Prerequisites
-- Database Configuration
-- Run the Application
-- API Documentation (Swagger UI)
-- Using the Terminal (PowerShell)
-  - Register data
-  - Verify data
-- Response Model (ServerResponse)
-- API Endpoints Reference
-- Project Structure
-- Troubleshooting
+## Getting Started
 
----
+Follow these steps to get the project running on your local machine.
 
-## Overview
-- Purpose: Persist a person, their driver’s license, a vehicle, and its registration; verify later with a strict field-by-field comparison.
-- Data model: Person ↔ DriversLicense, Person ↔ Vehicles, Vehicle ↔ VehicleRegistration.
-- Responses: All controller responses are JSON objects using ServerResponse (status, message).
+### 1. Prerequisites
+*   **JDK 17** or later installed.
+*   **Apache Maven** installed.
+*   **PostgreSQL** database server running.
 
----
+### 2. Database Setup
+1.  Open `psql` or a tool like pgAdmin.
+2.  Create a new database named `demo`.
+    ```sql
+    CREATE DATABASE demo;
+    ```
 
-## Prerequisites
-- Java JDK 21
-- Maven
-- PostgreSQL (local instance)
-- Git (optional)
+### 3. Configuration
+1.  Open the `src/main/resources/application.properties` file.
+2.  Configure the database connection details:
+    ```properties
+    spring.datasource.url=jdbc:postgresql://localhost:5432/demo
+    spring.datasource.username=your_postgres_username
+    spring.datasource.password=your_postgres_password
+    ```
+3.  Set the **admin password** for privileged operations (update/delete). This is a secret password that only an authority should know.
+    ```properties
+    # Password for privileged update/delete operations
+    app.admin.password=YouShoNoPass091
+    ```
+4.  The property `spring.jpa.hibernate.ddl-auto=update` will automatically create the necessary tables in your database the first time you run the application.
 
----
-
-## Database Configuration
-Edit src/main/resources/application.properties:
-
-```properties
-spring.datasource.url=jdbc:postgresql://localhost:5432/demo
-spring.datasource.username=your_postgres_username
-spring.datasource.password=your_postgres_password
-
-spring.jpa.hibernate.ddl-auto=update
-spring.jpa.show-sql=true
-```
-
-Create the database:
-
-```sql
-CREATE DATABASE demo;
-```
+### 4. Running the Application
+1.  Open a terminal in the root directory of the project.
+2.  Run the application using the Maven wrapper:
+    ```bash
+    ./mvnw spring-boot:run
+    ```
+3.  The application will start on `http://localhost:8080`.
 
 ---
 
-## Run the Application
-From the project root:
+## How to Use Swagger UI
 
-```bash
-# Windows PowerShell
-cd C:\Users\a\Desktop\demo
-./mvnw spring-boot:run
-```
+Swagger UI provides an interactive web interface to explore and test the API endpoints directly from your browser.
 
-Wait until you see “Started AyrotekApplication ...”.  
-Service URL:
-- http://localhost:8080
+1.  **Access Swagger UI**: Once the application is running, navigate to:
+    [**http://localhost:8080/swagger-ui.html**](http://localhost:8080/swagger-ui.html)
 
----
-
-## API Documentation (Swagger UI)
-Open the interactive API docs:
-
-- http://localhost:8080/swagger-ui.html
-
-How to use:
-1. Expand an endpoint (e.g., POST /api/register/full).
-2. Click Try it out.
-3. Paste a full JSON request body.
-4. Click Execute and review the Server response section.
+2.  **Testing an Endpoint (Example: Create Record)**:
+    *   Find the `registration-controller` section and expand the `POST /api/register/createRecord` endpoint.
+    *   Click the **"Try it out"** button on the right.
+    *   The "Request body" field will become editable. Paste a valid JSON payload into it (see samples below).
+    *   Click the **"Execute"** button.
+    *   Scroll down to the "Responses" section to see the HTTP status code and the JSON response from the server.
 
 ---
 
-## Using the Terminal (PowerShell)
+## REST API Endpoints
 
-### Register data
-Define and send a registration payload:
+All responses are wrapped in a `ServerResponse` JSON object: `{"status": boolean, "message": "string"}`.
 
-```powershell
-# Define registration data
-$jsonData = @{
-  vehicleRegistration = @{
-    registrationNumber = "34ABC123"
-    issueDate = "2023-05-15"
-    expiryDate = "2028-05-15"
-    owner = @{ nationalId = "12345678901" }
-    vehicle = @{
-      make = "Toyota"; model = "Corolla"; year = 2021; color = "White"
-      vin = "1HGCM82633A004352"; engineNumber = "ENG123456789"
-      plateNumber = "34ABC123"; fuelType = "Gasoline"
+### Registration API (`/api/register`)
+
+#### 1. Create a New Registration
+*   **Endpoint**: `POST /api/register/createRecord`
+*   **Description**: Registers a new vehicle for a person. If the person (identified by `nationalId`) does not exist, they will be created. If the person exists but the vehicle does not, the new vehicle will be added to their record.
+*   **Request Body**:
+    ```json
+    {
+      "vehicleRegistration": {
+        "registrationNumber": "34ABC123", "issueDate": "2023-05-15", "expiryDate": "2028-05-15",
+        "owner": { "nationalId": "12345678901" },
+        "vehicle": { "make": "Toyota", "model": "Corolla", "year": 2021, "color": "White", "vin": "VIN_TOYOTA_123", "engineNumber": "ENG_TOYOTA_123", "plateNumber": "34ABC123", "fuelType": "Gasoline" }
+      },
+      "driversLicense": {
+        "licenseNumber": "TR12345678", "issueDate": "2022-03-10", "expiryDate": "2032-03-10", "categories": ["B", "A2"],
+        "holder": { "firstName": "John", "lastName": "Doe", "dateOfBirth": "1985-07-20", "nationalId": "12345678901" }
+      }
     }
-  }
-  driversLicense = @{
-    licenseNumber = "TR12345678"
-    issueDate = "2022-03-10"
-    expiryDate = "2032-03-10"
-    categories = @("B","A2")
-    holder = @{
-      firstName = "John"; lastName = "Doe"; dateOfBirth = "1985-07-20"
-      nationalId = "12345678901"
+    ```
+*   **Responses**:
+    *   **201 Created (Success)**: `{"status": true, "message": "Registration successful"}`
+    *   **400 Bad Request**: `{"status": false, "message": "Invalid JSON format in request body."}` or `{"status": false, "message": "The registration request is incomplete."}`
+
+#### 2. Update an Existing Record
+*   **Endpoint**: `PUT /api/register/updateRecord`
+*   **Description**: Updates the details of a person and one of their vehicles. Requires authorization. The person is found by `regCode`, and the specific vehicle to update is found by `plateNumber`.
+*   **Request Body**:
+    ```json
+    {
+      "regCode": "the-latest-reg-code-for-the-person",
+      "adminPassword": "YouShoNoPass091",
+      "vehicleRegistration": {
+        "vehicle": { "plateNumber": "34ABC123", "fuelType": "Hybrid", /* ...other corrected fields */ }
+        /* ...other corrected fields */
+      },
+      "driversLicense": { /* ...other corrected fields */ }
     }
-  }
-} | ConvertTo-Json -Depth 6
+    ```
+*   **Responses**:
+    *   **200 OK (Success)**: `{"status": true, "message": "Update successful"}`
+    *   **403 Forbidden**: `{"status": false, "message": "Invalid admin password. Update not permitted."}`
+    *   **404 Not Found**: `{"status": false, "message": "Person not found with the provided registration code."}` or `{"status": false, "message": "No vehicle with plate number ... found for this person."}`
 
-# Send registration request
-Invoke-WebRequest -Method Post -Uri "http://localhost:8080/api/register/full" `
-  -ContentType "application/json" -Body $jsonData
-```
+#### 3. Delete a Vehicle
+*   **Endpoint**: `DELETE /api/register/vehicleDelete`
+*   **Description**: Deletes a single vehicle from the database, identified by its unique system-generated `id`. Requires authorization.
+*   **Request Body**:
+    ```json
+    {
+      "vehicleId": 1,
+      "adminPassword": "YouShoNoPass091"
+    }
+    ```
+*   **Responses**:
+    *   **200 OK (Success)**: `{"status": true, "message": "Vehicle with ID 1 was successfully deleted."}`
+    *   **403 Forbidden**: `{"status": false, "message": "Invalid admin password. Deletion not permitted."}`
+    *   **404 Not Found**: `{"status": false, "message": "No vehicle found with the provided ID: 1"}`
 
-Expected JSON responses:
-- 201 Created
-  ```json
-  { "status": true, "message": "Registration successful" }
-  ```
-- 409 Conflict (duplicate)
-  ```json
-  { "status": false, "message": "Record already exists" }
-  ```
-- 400 Bad Request
-  ```json
-  { "status": false, "message": "Validation error message" }
-  ```
+### Verification API (`/api/verify`)
 
-### Verify data
-Use the same structure (every field must match exactly):
-
-```powershell
-Invoke-WebRequest -Method Post -Uri "http://localhost:8080/api/verify/full" `
-  -ContentType "application/json" -Body $jsonData
-```
-
-Expected JSON responses:
-- 200 OK
-  ```json
-  { "status": true, "message": "Verification successful" }
-  ```
-- 401 Unauthorized
-  ```json
-  { "status": false, "message": "Verification failed" }
-  ```
-
-Tips:
-- The person is identified by driversLicense.holder.nationalId.
-- Any mismatch in any field results in “Verification failed”.
+#### 1. Verify a Full Registration
+*   **Endpoint**: `POST /api/verify/full`
+*   **Description**: Performs a strict, field-by-field comparison of the provided data against the record in the database.
+*   **Request Body**: The JSON should be identical to the data stored in the database.
+*   **Responses**:
+    *   **200 OK (Success - Verified)**: `{"status": true, "message": "Verification successful"}`
+    *   **200 OK (Success - Not Verified)**: `{"status": false, "message": "Verification failed: Data does not match."}`
+    *   **404 Not Found**: `{"status": false, "message": "Verification failed: No person found with national ID ..."}`
 
 ---
 
-## Response Model (ServerResponse)
-All endpoints return a JSON wrapper defined by ServerResponse:
+### **CRITICAL BUG WARNING**
 
-```json
-{
-  "status": boolean,
-  "message": "string"
+There is a critical security bug in the `deleteVehicle` method in `RegistrationService.java`. The password check logic is reversed.
+
+**Incorrect Code in your file:**
+```java
+if (request.adminPassword == null || request.adminPassword.equals(configuredAdminPassword)) {
+    response.setMessage("Invalid admin password. Deletion not permitted.");
+    return response;
 }
 ```
+This code **rejects the correct password** and allows any incorrect password.
 
-- status: true (success) or false (error).
-- message: human-readable description (e.g., “Registration successful”, “Record already exists”, “Verification failed”).
-
----
-
-## API Endpoints Reference
-
-### POST /api/register/full
-- Description: Registers a person, driver’s license, vehicle, and vehicle registration in one transaction.
-- Request body: Full JSON as shown above.
-- Responses:
-  - 201 Created: `{ "status": true, "message": "Registration successful" }`
-  - 409 Conflict: `{ "status": false, "message": "Record already exists" }`
-  - 400 Bad Request: `{ "status": false, "message": "<details>" }`
-
-### POST /api/verify/full
-- Description: Strict, field-by-field verification against stored data.
-- Request body: Same structure as registration.
-- Responses:
-  - 200 OK: `{ "status": true, "message": "Verification successful" }`
-  - 401 Unauthorized: `{ "status": false, "message": "Verification failed" }`
-
-Reason for POST-only:
-- Payloads are large and nested.
-- Sensitive identifiers should not be placed in URLs.
-- Avoid URL length limits and log exposure.
-
----
-
-## Project Structure
-
+**Corrected Code:**
+You must change `.equals` to `!request.adminPassword.equals`.
+```java
+if (request.adminPassword == null || !request.adminPassword.equals(configuredAdminPassword)) {
+    response.setMessage("Invalid admin password. Deletion not permitted.");
+    return response;
+}
 ```
-src/
-├── main/java/Ayrotek/demo/
-│   ├── AyrotekApplication.java
-│   ├── config/
-│   │   └── SecurityConfig.java
-│   ├── controller/
-│   │   ├── RegistrationController.java
-│   │   ├── VerificationController.java
-│   │   └── ServerResponse.java
-│   ├── dto/
-│   │   └── RegistrationRequest.java
-│   ├── entity/
-│   │   ├── Person.java
-│   │   ├── DriversLicense.java
-│   │   ├── Vehicle.java
-│   │   └── VehicleRegistration.java
-│   ├── repository/
-│   │   ├── PersonRepository.java
-│   │   └── VerRepository.java
-│   └── service/
-│       ├── RegistrationService.java
-│       └── VerificationService.java
-└── resources/
-    ├── application.properties
-    ├── static/
-    └── templates/
-```
+Please apply this fix to secure your delete endpoint.
+```# Vehicle and Driver Registration System
+
+This project is a Spring Boot application that provides a RESTful API for managing vehicle and driver registration records. It allows for creating, updating, deleting, and verifying registration data in a secure and structured manner.
+
+## Technologies Used
+*   **Java 17**
+*   **Spring Boot 3**
+*   **Spring Data JPA / Hibernate**: For database interaction.
+*   **PostgreSQL**: As the relational database.
+*   **Maven**: For project build and dependency management.
+*   **Swagger / OpenAPI 3**: For API documentation and interactive testing.
+
+## Getting Started
+
+Follow these steps to get the project running on your local machine.
+
+### 1. Prerequisites
+*   **JDK 17** or later installed.
+*   **Apache Maven** installed.
+*   **PostgreSQL** database server running.
+
+### 2. Database Setup
+1.  Open `psql` or a tool like pgAdmin.
+2.  Create a new database named `demo`.
+    ```sql
+    CREATE DATABASE demo;
+    ```
+
+### 3. Configuration
+1.  Open the `src/main/resources/application.properties` file.
+2.  Configure the database connection details:
+    ```properties
+    spring.datasource.url=jdbc:postgresql://localhost:5432/demo
+    spring.datasource.username=your_postgres_username
+    spring.datasource.password=your_postgres_password
+    ```
+3.  Set the **admin password** for privileged operations (update/delete). This is a secret password that only an authority should know.
+    ```properties
+    # Password for privileged update/delete operations
+    app.admin.password=YouShoNoPass091
+    ```
+4.  The property `spring.jpa.hibernate.ddl-auto=update` will automatically create the necessary tables in your database the first time you run the application.
+
+### 4. Running the Application
+1.  Open a terminal in the root directory of the project.
+2.  Run the application using the Maven wrapper:
+    ```bash
+    ./mvnw spring-boot:run
+    ```
+3.  The application will start on `http://localhost:8080`.
 
 ---
 
-## Troubleshooting
-- Cannot connect: Ensure the app is running (`./mvnw spring-boot:run`) and port 8080 is free.
-- 409 on registration: Duplicate vehicle for the same person.
-- 401 on verification: One or more fields differ from the stored record.
-- Clean test data: Drop or delete rows in dependent tables first (vehicle_registrations, vehicles, drivers_licenses) before persons.
+## How to Use Swagger UI
+
+Swagger UI provides an interactive web interface to explore and test the API endpoints directly from your browser.
+
+1.  **Access Swagger UI**: Once the application is running, navigate to:
+    [**http://localhost:8080/swagger-ui.html**](http://localhost:8080/swagger-ui.html)
+
+2.  **Testing an Endpoint (Example: Create Record)**:
+    *   Find the `registration-controller` section and expand the `POST /api/register/createRecord` endpoint.
+    *   Click the **"Try it out"** button on the right.
+    *   The "Request body" field will become editable. Paste a valid JSON payload into it (see samples below).
+    *   Click the **"Execute"** button.
+    *   Scroll down to the "Responses" section to see the HTTP status code and the JSON response from the server.
+
+---
+
+## REST API Endpoints
+
+All responses are wrapped in a `ServerResponse` JSON object: `{"status": boolean, "message": "string"}`.
+
+### Registration API (`/api/register`)
+
+#### 1. Create a New Registration
+*   **Endpoint**: `POST /api/register/createRecord`
+*   **Description**: Registers a new vehicle for a person. If the person (identified by `nationalId`) does not exist, they will be created. If the person exists but the vehicle does not, the new vehicle will be added to their record.
+*   **Request Body**:
+    ```json
+    {
+      "vehicleRegistration": {
+        "registrationNumber": "34ABC123", "issueDate": "2023-05-15", "expiryDate": "2028-05-15",
+        "owner": { "nationalId": "12345678901" },
+        "vehicle": { "make": "Toyota", "model": "Corolla", "year": 2021, "color": "White", "vin": "VIN_TOYOTA_123", "engineNumber": "ENG_TOYOTA_123", "plateNumber": "34ABC123", "fuelType": "Gasoline" }
+      },
+      "driversLicense": {
+        "licenseNumber": "TR12345678", "issueDate": "2022-03-10", "expiryDate": "2032-03-10", "categories": ["B", "A2"],
+        "holder": { "firstName": "John", "lastName": "Doe", "dateOfBirth": "1985-07-20", "nationalId": "12345678901" }
+      }
+    }
+    ```
+*   **Responses**:
+    *   **201 Created (Success)**: `{"status": true, "message": "Registration successful"}`
+    *   **400 Bad Request**: `{"status": false, "message": "Invalid JSON format in request body."}` or `{"status": false, "message": "The registration request is incomplete."}`
+
+#### 2. Update an Existing Record
+*   **Endpoint**: `PUT /api/register/updateRecord`
+*   **Description**: Updates the details of a person and one of their vehicles. Requires authorization. The person is found by `regCode`, and the specific vehicle to update is found by `plateNumber`.
+*   **Request Body**:
+    ```json
+    {
+      "regCode": "the-latest-reg-code-for-the-person",
+      "adminPassword": "YouShoNoPass091",
+      "vehicleRegistration": {
+        "vehicle": { "plateNumber": "34ABC123", "fuelType": "Hybrid", /* ...other corrected fields */ }
+        /* ...other corrected fields */
+      },
+      "driversLicense": { /* ...other corrected fields */ }
+    }
+    ```
+*   **Responses**:
+    *   **200 OK (Success)**: `{"status": true, "message": "Update successful"}`
+    *   **403 Forbidden**: `{"status": false, "message": "Invalid admin password. Update not permitted."}`
+    *   **404 Not Found**: `{"status": false, "message": "Person not found with the provided registration code."}` or `{"status": false, "message": "No vehicle with plate number ... found for this person."}`
+
+#### 3. Delete a Vehicle
+*   **Endpoint**: `DELETE /api/register/vehicleDelete`
+*   **Description**: Deletes a single vehicle from the database, identified by its unique system-generated `id`. Requires authorization.
+*   **Request Body**:
+    ```json
+    {
+      "vehicleId": 1,
+      "adminPassword": "YouShoNoPass091"
+    }
+    ```
+*   **Responses**:
+    *   **200 OK (Success)**: `{"status": true, "message": "Vehicle with ID 1 was successfully deleted."}`
+    *   **403 Forbidden**: `{"status": false, "message": "Invalid admin password. Deletion not permitted."}`
+    *   **404 Not Found**: `{"status": false, "message": "No vehicle found with the provided ID: 1"}`
+
+### Verification API (`/api/verify`)
+
+#### 1. Verify a Full Registration
+*   **Endpoint**: `POST /api/verify/full`
+*   **Description**: Performs a strict, field-by-field comparison of the provided data against the record in the database.
+*   **Request Body**: The JSON should be identical to the data stored in the database.
+*   **Responses**:
+    *   **200 OK (Success - Verified)**: `{"status": true, "message": "Verification successful"}`
+    *   **200 OK (Success - Not Verified)**: `{"status": false, "message": "Verification failed: Data does not match."}`
+    *   **404 Not Found**: `{"status": false, "message": "Verification failed: No person found with national ID ..."}`
+
+---
+
+### **CRITICAL BUG WARNING**
+
+There is a critical security bug in the `deleteVehicle` method in `RegistrationService.java`. The password check logic is reversed.
+
+**Incorrect Code in your file:**
+```java
+if (request.adminPassword == null || request.adminPassword.equals(configuredAdminPassword)) {
+    response.setMessage("Invalid admin password. Deletion not permitted.");
+    return response;
+}
+```
+This code **rejects the correct password** and allows any incorrect password.
+
+**Corrected Code:**
+You must change `.equals` to `!request.adminPassword.equals`.
+```java
+if (request.adminPassword == null || !request.adminPassword.equals(configuredAdminPassword)) {
+    response.setMessage("Invalid admin password. Deletion not permitted.");
+    return response;
+}
+```
+Please apply this fix to secure your delete
