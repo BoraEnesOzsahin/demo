@@ -45,6 +45,8 @@ public class RegistrationRequest {
         public String engineNumber;
         public String plateNumber;
         public String fuelType;
+        public String vehicleType;//Personal or Commercial
+        public String company; // Only for commercial vehicles
 
 
         public String getPlateNumber() {

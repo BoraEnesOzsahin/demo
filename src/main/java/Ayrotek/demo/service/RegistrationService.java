@@ -83,6 +83,21 @@ public class RegistrationService {
         vehicle.setFuelType(vehicleDto.fuelType);
         vehicle.setOwner(person);
 
+        // 1. Handle vehicleType: Default to PERSONAL if it's null or not "COMMERCIAL"
+        Vehicle.VehicleType type = Vehicle.VehicleType.PERSONAL;
+        if ("COMMERCIAL".equalsIgnoreCase(vehicleDto.vehicleType)) {
+            type = Vehicle.VehicleType.COMMERCIAL;
+        }
+        vehicle.setVehicleType(type);
+
+        // 2. Handle company: Only set it if the type is COMMERCIAL.
+        // This ensures it's null for personal vehicles, even if a value was sent by mistake.
+        if (type == Vehicle.VehicleType.COMMERCIAL) {
+            vehicle.setCompany(vehicleDto.company);
+        } else {
+            vehicle.setCompany(null);
+        }
+
         VehicleRegistration registration = new VehicleRegistration();
         registration.setRegistrationNumber(request.vehicleRegistration.registrationNumber);
         registration.setIssueDate(request.vehicleRegistration.issueDate);
@@ -111,6 +126,8 @@ public class RegistrationService {
         return personRepository.save(person);
     }
 
+    
+/* 
     public Object updateRegistration(RegistrationRequest request){
         ServerResponse response = new ServerResponse();
 
@@ -168,6 +185,16 @@ public class RegistrationService {
             vehicleToUpdate.setFuelType(vehicleDto.fuelType);
             vehicleToUpdate.setPlateNumber(vehicleDto.plateNumber);
 
+          
+
+            // 2. Handle company: Only set it if the type is COMMERCIAL.
+            // This ensures it's null for personal vehicles, even if a value was sent by mistake.
+            if (type == Vehicle.VehicleType.COMMERCIAL) {
+                vehicleToUpdate.setCompany(vehicleDto.company);
+            } else {
+                vehicleToUpdate.setCompany(null);
+            }
+
             VehicleRegistration registrationToUpdate = vehicleToUpdate.getRegistration();
             registrationToUpdate.setRegistrationNumber(request.vehicleRegistration.registrationNumber);
             registrationToUpdate.setIssueDate(request.vehicleRegistration.issueDate);
@@ -188,6 +215,10 @@ public class RegistrationService {
      * Deletes a single vehicle record, identified by its system-generated ID.
      * Requires admin password for authorization.
      */
+    
+      // 1. Handle vehicleType: Default to PERSONAL if it's null or not "COMMERCIAL"
+            
+
     public ServerResponse deleteVehicle(DeleteVehicleRequest request) {
         ServerResponse response = new ServerResponse();
 

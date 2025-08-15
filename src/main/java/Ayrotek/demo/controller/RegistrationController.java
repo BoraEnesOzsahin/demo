@@ -40,6 +40,7 @@ public class RegistrationController {
      * PUT endpoint for UPDATING an existing registration using your workflow.
      * On success, returns a ServerResponse with status 200 (OK).
      */
+    /* 
     @PutMapping(value = "/updateRecord")
     public ResponseEntity<ServerResponse> updateRegistrationRecord(@RequestBody RegistrationRequest request) {
         // This method also only handles the success case.
@@ -50,7 +51,7 @@ public class RegistrationController {
         response.setMessage("Update successful");
 
         return ResponseEntity.ok(response);
-    }
+    }*/
 
     /**
      * DELETE endpoint for removing a single vehicle by its ID.

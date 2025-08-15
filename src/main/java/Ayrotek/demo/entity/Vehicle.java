@@ -21,6 +21,16 @@ public class Vehicle {
     @Column(unique = true, nullable = false)
     private String vin; // Vehicle Identification Number is a good primary key candidate
 
+    public enum VehicleType {
+        PERSONAL,
+        COMMERCIAL
+    }
+
+    @Enumerated(EnumType.STRING)
+    private VehicleType vehicleType = VehicleType.PERSONAL;
+
+    private String company; //Only for commercials
+
     private String plateNumber;
     private String make;
     private String model;

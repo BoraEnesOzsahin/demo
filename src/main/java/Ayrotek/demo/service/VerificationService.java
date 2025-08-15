@@ -73,14 +73,26 @@ public class VerificationService {
         }
         Vehicle vehicleInDb = vehicleOpt.get();
 
-        // --- Step 6: Verify Vehicle details ---
+        // --- Step 6: Verify Vehicle details (including type and company) ---
+
+        // This line is key. If vehicleDto.vehicleType is null (as it would be for a personal
+        // vehicle request), this correctly defaults the expected type to PERSONAL.
+        Vehicle.VehicleType expectedType = "COMMERCIAL".equalsIgnoreCase(vehicleDto.vehicleType)
+                ? Vehicle.VehicleType.COMMERCIAL
+                : Vehicle.VehicleType.PERSONAL;
+
         if (!Objects.equals(vehicleInDb.getMake(), vehicleDto.make) ||
             !Objects.equals(vehicleInDb.getModel(), vehicleDto.model) ||
             vehicleInDb.getYear() != vehicleDto.year ||
             !Objects.equals(vehicleInDb.getColor(), vehicleDto.color) ||
             !Objects.equals(vehicleInDb.getVin(), vehicleDto.vin) ||
             !Objects.equals(vehicleInDb.getEngineNumber(), vehicleDto.engineNumber) ||
-            !Objects.equals(vehicleInDb.getFuelType(), vehicleDto.fuelType)) {
+            !Objects.equals(vehicleInDb.getFuelType(), vehicleDto.fuelType) ||
+            // This check now works for both types.
+            vehicleInDb.getVehicleType() != expectedType ||
+            // This check also works because Objects.equals(null, null) is true.
+            !Objects.equals(vehicleInDb.getCompany(), vehicleDto.company)
+        ) {
             return false;
         }
 
