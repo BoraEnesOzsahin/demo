@@ -60,7 +60,7 @@ public class VerificationService {
         if (!Objects.equals(licenseInDb.getLicenseNumber(), licenseDto.licenseNumber) ||
             !Objects.equals(licenseInDb.getIssueDate(), licenseDto.issueDate) ||
             !Objects.equals(licenseInDb.getExpiryDate(), licenseDto.expiryDate) ||
-            !Objects.equals(new HashSet<>(licenseInDb.getCategories()), new HashSet<>(licenseDto.categories))) {
+            !new HashSet<>(licenseInDb.getCategories()).equals(new HashSet<>(request.driversLicense.categories))) {
             return false;
         }
 
