@@ -8,7 +8,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
-public class AyrotekApplication {
+public class AyrotekApplication {   
 
     public static void main(String[] args) {
         SpringApplication.run(AyrotekApplication.class, args);
