@@ -29,14 +29,13 @@ public class VerificationController {
         ServerResponse response = new ServerResponse();
 
         try {
-            boolean isVerified = verificationService.verifyRegistrationData(request);
+            String mismatchReason = verificationService.verifyAndGetMismatchReason(request);
 
-            if (isVerified) {
+            if (mismatchReason == null) {
                 response.setMessage("Verification successful");
                 response.setStatus(true);
-                
             } else {
-                response.setMessage("Verification failed");
+                response.setMessage("Verification failed: " + mismatchReason);
                 response.setStatus(false);
             }
         } catch (Exception e) {

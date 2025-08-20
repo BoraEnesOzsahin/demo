@@ -1,8 +1,10 @@
 package Ayrotek.demo.controller;
 
 import Ayrotek.demo.dto.DeleteVehicleRequest; // Import the new DTO
+import Ayrotek.demo.dto.DeletePersonRequest; // Import the new DTO
 import Ayrotek.demo.dto.RegistrationRequest;
 import Ayrotek.demo.entity.Person;
+import Ayrotek.demo.repository.PersonRepository;//
 import Ayrotek.demo.service.RegistrationService;
 import jakarta.persistence.EntityNotFoundException; // Make sure you have this exception class
 import org.springframework.http.HttpStatus;
@@ -14,10 +16,13 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/register")
 public class RegistrationController {
 
+    private final PersonRepository personRepository;
     private final RegistrationService registrationService;
 
-    public RegistrationController(RegistrationService registrationService) {
+    
+    public RegistrationController(RegistrationService registrationService, PersonRepository personRepository) {
         this.registrationService = registrationService;
+        this.personRepository = personRepository;
     }
 
     /**
@@ -70,6 +75,29 @@ public class RegistrationController {
             return ResponseEntity.badRequest().body(response);
         }
     }
+
+
+
+
+        @DeleteMapping("/PersonDelete")
+    public ResponseEntity<ServerResponse> deletePerson(@RequestBody DeletePersonRequest request) {
+        ServerResponse response = registrationService.deletePerson(request);
+
+        // If the operation was successful, return 200 OK.
+        // If it failed (e.g., wrong password), the service returns a response with status=false,
+        // and we can return a 400 Bad Request or 403 Forbidden depending on the message.
+        if (response.isStatus()) {
+            return ResponseEntity.ok(response);
+        } else {
+            // You can add more specific logic here based on the error message if needed
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    /**
+     * GET endpoint for retrieving a Person by their National ID.
+     */
+
 
     // --- Centralized Exception Handling ---
 

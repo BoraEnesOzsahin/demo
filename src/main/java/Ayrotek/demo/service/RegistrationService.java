@@ -2,6 +2,7 @@ package Ayrotek.demo.service;
 
 import Ayrotek.demo.controller.ServerResponse;
 import Ayrotek.demo.dto.DeleteVehicleRequest; // Import the new DTO
+import Ayrotek.demo.dto.DeletePersonRequest; // Import the new DTO
 import Ayrotek.demo.dto.RegistrationRequest;
 import Ayrotek.demo.dto.RegistrationRequest.*;
 import Ayrotek.demo.entity.*;
@@ -219,7 +220,7 @@ public class RegistrationService {
             response.setMessage("A vehicle ID is required to identify which vehicle to delete.");
             return response;
         }
-        if (request.adminPassword == null || request.adminPassword.equals(configuredAdminPassword)) {
+        if (request.adminPassword == null || !request.adminPassword.equals(configuredAdminPassword)) {
             response.setMessage("Invalid admin password. Deletion not permitted.");
             return response;
         }
@@ -242,4 +243,39 @@ public class RegistrationService {
         response.setMessage("Vehicle with ID " + request.vehicleId + " was successfully deleted.");
         return response;
     }
+
+
+
+
+
+
+     public ServerResponse deletePerson(DeletePersonRequest request) {
+        ServerResponse response = new ServerResponse();
+
+        // 1. Validate the request
+        if (request.personId == null) {
+            response.setMessage("A person ID is required to identify which person to delete.");
+            return response;
+        }
+        if (request.adminPassword == null || !request.adminPassword.equals(configuredAdminPassword)) {
+            response.setMessage("Invalid admin password. Deletion not permitted.");
+            return response;
+        }
+
+        // 2. Check if the person exists before trying to delete it
+        boolean personExists = personRepository.existsById(request.personId);
+        if (!personExists) {
+            response.setMessage("No person found with the provided ID: " + request.personId);
+            return response;
+        }
+
+        // 3. Delete the person
+        personRepository.deleteById(request.personId);
+
+        // 4. Return a success response
+        response.setStatus(true);
+        response.setMessage("Person with ID " + request.personId + " was successfully deleted.");
+        return response;
+    }
+
 }
