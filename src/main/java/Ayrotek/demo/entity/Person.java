@@ -28,8 +28,6 @@ public class Person {
     private String lastName;
     private LocalDate dateOfBirth;
 
-    @Column(unique = true)
-    private String regCode; // Registration code, unique for each person
 
     @OneToOne(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
     private DriversLicense driversLicense;

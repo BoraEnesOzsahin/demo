@@ -44,10 +44,14 @@ public class RegistrationService {
             throw new IllegalArgumentException("Driver's license holder information with national ID is required.");
         }
         VehicleDTO vehicleDto = request.vehicleRegistration.vehicle;
+        OwnerDTO owner = request.vehicleRegistration.owner;
+        VehicleType vType = vehicleDto.vehicleType;
         if (vehicleDto == null || vehicleDto.getPlateNumber() == null) {
             throw new IllegalArgumentException("Vehicle information with a plate number is required.");
         }
-
+        if((!holderDto.nationalId.equals(owner.nationalId)) && vType.getId()==1){
+            throw new IllegalArgumentException("Ruhsat Ehliyet uyumusuzluğu lütfen kontrol edin");
+        }
         // --- FIND OR CREATE PERSON ---
         Person person = personRepository.findByNationalId(holderDto.nationalId)
                 .orElseGet(() -> {
@@ -82,19 +86,11 @@ public class RegistrationService {
         vehicle.setEngineNumber(vehicleDto.engineNumber);
         vehicle.setFuelType(vehicleDto.fuelType);
         vehicle.setOwner(person);
+        vehicle.setVehicleType(vehicleDto.vehicleType);
 
-        // 1. Handle vehicleType: Default to PERSONAL if it's null or not "COMMERCIAL"
-        Vehicle.VehicleType type = Vehicle.VehicleType.PERSONAL;
-        if ("COMMERCIAL".equalsIgnoreCase(vehicleDto.vehicleType)) {
-            type = Vehicle.VehicleType.COMMERCIAL;
-        }
-        vehicle.setVehicleType(type);
-
-        // 2. Handle company: Only set it if the type is COMMERCIAL.
-        // This ensures it's null for personal vehicles, even if a value was sent by mistake.
-        if (type == Vehicle.VehicleType.COMMERCIAL) {
+        if ("COMMERCIAL".equalsIgnoreCase(vehicleDto.vehicleType.getVehicleType())) {
             vehicle.setCompany(vehicleDto.company);
-        } else {
+        }else{
             vehicle.setCompany(null);
         }
 
@@ -117,10 +113,6 @@ public class RegistrationService {
             license.setPerson(person);
             person.setDriversLicense(license);
         }
-
-        // --- GENERATE REGISTRATION CODE ---
-        String registrationCode = UUID.randomUUID().toString();
-        person.setRegCode(registrationCode);
 
         // --- SAVE ---
         return personRepository.save(person);

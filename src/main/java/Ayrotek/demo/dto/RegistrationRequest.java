@@ -1,12 +1,13 @@
 package Ayrotek.demo.dto;
 
+import Ayrotek.demo.entity.VehicleType;
+
 import java.time.LocalDate;
 import java.util.List;
 
 public class RegistrationRequest {
     public VehicleRegistrationDTO vehicleRegistration;
     public DriversLicenseDTO driversLicense;
-    public String regCode;
     public String adminPassword;
 
     public static class VehicleRegistrationDTO {
@@ -45,7 +46,7 @@ public class RegistrationRequest {
         public String engineNumber;
         public String plateNumber;
         public String fuelType;
-        public String vehicleType;//Personal or Commercial
+        public VehicleType vehicleType;//Personal or Commercial
         public String company; // Only for commercial vehicles
 
 

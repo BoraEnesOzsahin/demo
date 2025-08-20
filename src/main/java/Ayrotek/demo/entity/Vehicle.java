@@ -10,7 +10,7 @@ import lombok.ToString;
 @Entity
 @Table(name = "vehicles")
 @Data
-@EqualsAndHashCode(exclude = {"owner", "registration"}) // Exclude relationships
+@EqualsAndHashCode(exclude = {"owner", "registration", "vehicle_type"}) // Exclude relationships
 @ToString(exclude = {"owner", "registration"}) // Exclude from toString too
 public class Vehicle {
 
@@ -21,13 +21,10 @@ public class Vehicle {
     @Column(unique = true, nullable = false)
     private String vin; // Vehicle Identification Number is a good primary key candidate
 
-    public enum VehicleType {
-        PERSONAL,
-        COMMERCIAL
-    }
 
-    @Enumerated(EnumType.STRING)
-    private VehicleType vehicleType = VehicleType.PERSONAL;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "vehicle_id")
+    private VehicleType vehicleType;
 
     private String company; //Only for commercials
 

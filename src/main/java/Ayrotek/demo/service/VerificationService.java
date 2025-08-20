@@ -2,10 +2,7 @@ package Ayrotek.demo.service;
 
 import Ayrotek.demo.dto.RegistrationRequest;
 import Ayrotek.demo.dto.RegistrationRequest.*;
-import Ayrotek.demo.entity.DriversLicense;
-import Ayrotek.demo.entity.Person;
-import Ayrotek.demo.entity.Vehicle;
-import Ayrotek.demo.entity.VehicleRegistration;
+import Ayrotek.demo.entity.*;
 import Ayrotek.demo.repository.PersonRepository;
 import org.springframework.stereotype.Service;
 import java.util.HashSet;
@@ -75,12 +72,7 @@ public class VerificationService {
 
         // --- Step 6: Verify Vehicle details (including type and company) ---
 
-        // This line is key. If vehicleDto.vehicleType is null (as it would be for a personal
-        // vehicle request), this correctly defaults the expected type to PERSONAL.
-        Vehicle.VehicleType expectedType = "COMMERCIAL".equalsIgnoreCase(vehicleDto.vehicleType)
-                ? Vehicle.VehicleType.COMMERCIAL
-                : Vehicle.VehicleType.PERSONAL;
-
+        VehicleType vehicleType = vehicleInDb.getVehicleType();
         if (!Objects.equals(vehicleInDb.getMake(), vehicleDto.make) ||
             !Objects.equals(vehicleInDb.getModel(), vehicleDto.model) ||
             vehicleInDb.getYear() != vehicleDto.year ||
@@ -89,7 +81,7 @@ public class VerificationService {
             !Objects.equals(vehicleInDb.getEngineNumber(), vehicleDto.engineNumber) ||
             !Objects.equals(vehicleInDb.getFuelType(), vehicleDto.fuelType) ||
             // This check now works for both types.
-            vehicleInDb.getVehicleType() != expectedType ||
+            vehicleType.getVehicleType() != vehicleDto.vehicleType.getVehicleType() ||
             // This check also works because Objects.equals(null, null) is true.
             !Objects.equals(vehicleInDb.getCompany(), vehicleDto.company)
         ) {
