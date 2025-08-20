@@ -94,27 +94,7 @@ All responses are wrapped in a `ServerResponse` JSON object: `{"status": boolean
     *   **201 Created (Success)**: `{"status": true, "message": "Registration successful"}`
     *   **400 Bad Request**: `{"status": false, "message": "Invalid JSON format in request body."}` or `{"status": false, "message": "The registration request is incomplete."}`
 
-#### 2. Update an Existing Record
-*   **Endpoint**: `PUT /api/register/updateRecord`
-*   **Description**: Updates the details of a person and one of their vehicles. Requires authorization. The person is found by `regCode`, and the specific vehicle to update is found by `plateNumber`.
-*   **Request Body**:
-    ```json
-    {
-      "regCode": "the-latest-reg-code-for-the-person",
-      "adminPassword": "YouShoNoPass091",
-      "vehicleRegistration": {
-        "vehicle": { "plateNumber": "34ABC123", "fuelType": "Hybrid", /* ...other corrected fields */ }
-        /* ...other corrected fields */
-      },
-      "driversLicense": { /* ...other corrected fields */ }
-    }
-    ```
-*   **Responses**:
-    *   **200 OK (Success)**: `{"status": true, "message": "Update successful"}`
-    *   **403 Forbidden**: `{"status": false, "message": "Invalid admin password. Update not permitted."}`
-    *   **404 Not Found**: `{"status": false, "message": "Person not found with the provided registration code."}` or `{"status": false, "message": "No vehicle with plate number ... found for this person."}`
-
-#### 3. Delete a Vehicle
+#### 2. Delete a Vehicle
 *   **Endpoint**: `DELETE /api/register/vehicleDelete`
 *   **Description**: Deletes a single vehicle from the database, identified by its unique system-generated `id`. Requires authorization.
 *   **Request Body**:
